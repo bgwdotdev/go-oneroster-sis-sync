@@ -11,8 +11,6 @@ import (
 	"os"
 )
 
-var sqlConnectionUrl string
-
 func main() {
 	var db *sql.DB
 	flag.Parse()
@@ -26,6 +24,7 @@ func main() {
 func init() {
 	viper.SetEnvPrefix("goors")
 
+	var sqlConnectionUrl string
 	flag.StringVarP(
 		&sqlConnectionUrl,
 		"sqlConnectionUrl",
@@ -42,9 +41,12 @@ func init() {
 
 // Connects to the sql instance
 func connectSql(connString string) *sql.DB {
-	// TODO: remove default?
-
 	db, err := sql.Open("sqlserver", connString)
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
+	err = db.Ping()
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
