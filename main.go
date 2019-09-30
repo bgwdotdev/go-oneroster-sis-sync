@@ -2,11 +2,12 @@ package main
 
 import (
 	"github.com/fffnite/go-oneroster-sis-sync/internal/sync"
-	"github.com/fffnite/go-oneroster-sis-sync/internal/wcbs-pass"
+	sis "github.com/fffnite/go-oneroster-sis-sync/internal/wcbs-pass"
 	"github.com/gchaincl/dotsql"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"os"
 )
 
 func main() {
@@ -19,12 +20,10 @@ func main() {
 	dot, err := dotsql.LoadFromFile(fp)
 	if err != nil {
 		log.Error(err)
+		os.Exit(1)
 	}
-	classes := pass.BuildClasses(db, dot)
 	token := sync.PostLogin()
-	for _, v := range classes {
-		sync.PutData(v, "/classes/"+v.SourcedId, token)
-	}
+	sis.RunBuild(db, dot, token)
 }
 
 // setup envs
