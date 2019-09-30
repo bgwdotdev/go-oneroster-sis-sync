@@ -1,15 +1,16 @@
 /** enrollments - scheduled - pupils **/
+-- name: select-enrollments-scheduled--pupil
 SELECT
     P.PUPIL_SET_ID AS sourcedId,
-    SS.IN_USE AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified, */
+    PUPIL.NAME_ID AS userSourcedId,
     P.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID AS schoolSourcedId,
-    PUPIL.NAME_ID AS userSourcedId,
-    'student' AS role
-    /* null AS primary, */
-    /* null AS beginDate, */
-    /* null AS endDate */
+    'student' AS role,
+    '' AS primary,
+    '' AS beginDate,
+    '' AS endDate
 FROM
     dbo.PUPIL_SET AS P
         INNER JOIN
@@ -22,21 +23,22 @@ FROM
     dbo.PUPIL
         ON PUPIL.PUPIL_ID = P.PUPIL_ID
 WHERE
-    SS.ACADEMIC_YEAR = '2019'
+    SS.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
 /** enrollments - homeroom - pupils **/
+-- name: select-enrollments-homeroom-pupil
 SELECT
     CONCAT(FORM.FORM_ID, PUPIL.PUPIL_ID) AS sourcedId
-    ,FORM.IN_USE AS status
+    , case when FORM.IN_USE = 'Y' then 'active' else 'inactive' end AS status
     /* ,null AS dateLastModified */
     ,FORM.FORM_ID AS classSourcedId
     ,SCHOOL.SCHOOL_ID AS schoolSourcedId
     ,PUPIL.NAME_ID AS userSourcedId
     ,'student' AS role
-    /* ,null AS primary */
-    /* ,null AS beginDate */
-    /* ,null AS endDate */
+    ,'' AS primary
+    ,'' AS beginDate 
+    ,'' AS endDate
 FROM
     dbo.PUPIL
         INNER JOIN
@@ -46,23 +48,26 @@ FROM
     dbo.SCHOOL
         ON SCHOOL.CODE = PUPIL.SCHOOL 
 WHERE
-    FORM.ACADEMIC_YEAR = '2019' AND PUPIL.ACADEMIC_YEAR = '2019'
+    FORM.ACADEMIC_YEAR = @p1 
+    AND PUPIL.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
+
 /** enrollments - homeroom - teacher **/
+-- name: select-enrollments-homeroom-teacher
 DECLARE @T bit
 SET @T=1
 SELECT
    CONCAT(FORM.FORM_ID, STAFF.NAME_ID) AS sourcedId
-    ,FORM.IN_USE AS status
+    , case when FORM.IN_USE = 'Y' then 'active' else 'inactive' end AS status
     /* ,null AS dateLastModified */
     ,FORM.FORM_ID As classSourcedId
     ,SCHOOL.SCHOOL_ID AS schoolSourcedId
     ,STAFF.NAME_ID AS userSourcedId
     ,'teacher' AS role
     ,@T AS 'primary'    
-    /* ,null AS beginDate */
-    /* ,null AS endDate */
+    ,'' AS beginDate
+    ,'' AS endDate
 FROM
     dbo.FORM
         INNER JOIN
@@ -72,21 +77,23 @@ FROM
     dbo.SCHOOL
         ON SCHOOL.CODE = STAFF.SCHOOL 
 WHERE
-    FORM.ACADEMIC_YEAR = '2019' 
+    FORM.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
+
 /** enrollments - Teacher 1 **/
+-- name: select-enrollments-scheduled-teacher-1
 SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
-    SS.IN_USE AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified */
     SS.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID as schoolSourcedId,
     S.NAME_ID AS userSourcedId,
     'teacher' AS role,
-    @T AS 'primary'
-    /* null AS begindate, */
-    /* null AS endDate */
+    @T AS 'primary',
+    '' AS begindate,
+    '' AS endDate
 FROM
     dbo.SUBJECT_SET AS SS
         INNER JOIN
@@ -96,23 +103,25 @@ FROM
     dbo.SCHOOL AS org
         ON org.CODE = SS.SCHOOL
 WHERE
-    SS.ACADEMIC_YEAR = '2019'
+    SS.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
+    
 /** enrollments - Teacher 2 **/
+-- name: select-enrollments-scheduled-teacher-2
 DECLARE @F bit
 SET @F=0
 SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
-    SS.IN_USE AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified */
     SS.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID as schoolSourcedId,
     S.NAME_ID AS userSourcedId,
     'teacher' AS role,
-    @F AS 'primary'
-    /* null AS begindate, */
-    /* null AS endDate */
+    @F AS 'primary',
+    '' AS begindate,
+    '' AS endDate
 FROM
     dbo.SUBJECT_SET AS SS
         INNER JOIN
@@ -122,22 +131,23 @@ FROM
     dbo.SCHOOL AS org
         ON org.CODE = SS.SCHOOL
 WHERE
-    SS.ACADEMIC_YEAR = '2019'
+    SS.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
 
 /** enrollments - Teacher 3 **/
+-- name: select-enrollment-scheduled-teacher-3
 SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
-    SS.IN_USE AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified */
     SS.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID as schoolSourcedId,
     S.NAME_ID AS userSourcedId,
     'teacher' AS role,
-    @F AS 'primary'
-    /* null AS begindate, */
-    /* null AS endDate */
+    @F AS 'primary',
+    '' AS begindate,
+    '' AS endDate
 FROM
     dbo.SUBJECT_SET AS SS
         INNER JOIN
@@ -147,8 +157,6 @@ FROM
     dbo.SCHOOL AS org
         ON org.CODE = SS.SCHOOL
 WHERE
-    SS.ACADEMIC_YEAR = '2019'
+    SS.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
-
-

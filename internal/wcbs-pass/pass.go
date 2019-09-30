@@ -42,7 +42,6 @@ func BuildClasses(db *sql.DB, dot *dotsql.DotSql) []or.Classes {
 			err = rows.Scan(
 				&j.SourcedId,
 				&j.Status,
-				&j.DateLastModified,
 				&j.Title,
 				&grades,
 				&course.SourcedId,

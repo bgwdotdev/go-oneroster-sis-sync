@@ -2,8 +2,8 @@
 -- name: select-classes-scheduled
 SELECT
     S.SUBJECT_SET_ID AS sourcedId,
-    S.IN_USE AS status,
-    S.LAST_AMEND_DATE AS dateLastModified,
+    case when S.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    /* S.LAST_AMEND_DATE AS dateLastModified, */
     S.DESCRIPTION AS title,
     '' AS grades,
     SUB.SUBJECT_ID AS course,
@@ -41,8 +41,8 @@ and subject_set.subject_set_id = @p2
 -- name: select-classes-homeroom
 SELECT
     F.FORM_ID AS sourcedId,
-    F.IN_USE AS status,
-    F.LAST_AMEND_DATE AS dateLastModified,
+    case when F.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    /* F.LAST_AMEND_DATE AS dateLastModified, */
     F.DESCRIPTION AS title,
     FORM_YEAR.AGE_RANGE AS grades,
     '<PLACEHOLDER>' AS course,

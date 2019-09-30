@@ -1,15 +1,16 @@
 /** courses **/
+-- name: select-courses
 SELECT
     S.SUBJECT_ID AS sourcedId,
     S.IN_USE AS status,
-    S.LAST_AMEND_DATE AS dateLastModified,
-    /* schoolYearSourcedId */
+    /* S.LAST_AMEND_DATE AS dateLastModified, */
     S.DESCRIPTION AS title,
+    '' AS schoolYear, -- GUIDRef[0..1]
     S.CODE AS courseCode,
-    /* grades - N/A */
-    org.SCHOOL_ID AS orgSourcedId,
-    S.DESCRIPTION AS subjects
-    /* subjectCodes - SQA codes? */ 
+    '' AS grades,
+    S.DESCRIPTION AS subjects,
+    org.SCHOOL_ID AS org,
+    '' AS subjectCodes
 FROM
     dbo.SUBJECT AS S 
         INNER JOIN
@@ -18,4 +19,6 @@ FROM
 ORDER BY
     sourcedId
 
-
+/*
+-- name: select-courses-academicYear
+*/

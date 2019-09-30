@@ -2,7 +2,7 @@
 -- name: select-academicSession-years
 SELECT
     Y.YEAR_ID AS sourcedId,
-    Y.IN_USE AS status,
+    case when Y.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     Y.LAST_AMEND_DATE AS dateLastModified,
     Y.DESCRIPTION AS title,
     SC.YEAR_START AS startDate,
