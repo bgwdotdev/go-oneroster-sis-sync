@@ -1,29 +1,20 @@
 /** classes - scheduled **/ 
--- name: select-classes-scheduled-test
-select top (1)
-    SUBJECT_SET_ID AS sourcedId
-    from
-    dbo.Subject_set
-    where
-    academic_year = @p1
-    order by
-    sourcedId
 -- name: select-classes-scheduled
 SELECT
     S.SUBJECT_SET_ID AS sourcedId,
     S.IN_USE AS status,
     S.LAST_AMEND_DATE AS dateLastModified,
     S.DESCRIPTION AS title,
-    /* null AS grades, */
-    SUB.SUBJECT_ID AS courseSourcedId,
+    '' AS grades,
+    SUB.SUBJECT_ID AS course,
     S.SET_CODE AS classCode,
     'scheduled' AS classType,
     S.ROOM AS location,
     org.SCHOOL_ID AS school,
-    /* S.SUBJECT_SET_ID AS terms, */ 
-    SUB.DESCRIPTION AS subjects
-    /* SQA CODES? AS subjectCodes, */
-    /* null AS periods */ 
+    /* NEST dbo.year AS terms, */ 
+    SUB.DESCRIPTION AS subjects,
+    '' AS subjectCodes, 
+    '' AS periods  
 FROM
     dbo.SUBJECT_SET AS S
         INNER JOIN
@@ -43,8 +34,9 @@ select year.year_id
 from dbo.year 
 inner join dbo.subject_set 
     on subject_set.academic_year = year.code 
-where subject_set.subject_set_id = @p2 
-and subject_set.academic_year = @p1
+where subject_set.academic_year = @p1
+and subject_set.subject_set_id = @p2 
+
 /** classes - homeroom(form) **/
 -- name: select-classes-homeroom
 SELECT
@@ -53,15 +45,15 @@ SELECT
     F.LAST_AMEND_DATE AS dateLastModified,
     F.DESCRIPTION AS title,
     FORM_YEAR.AGE_RANGE AS grades,
-    /* null AS courseSourcedId */
+    '<PLACEHOLDER>' AS course,
     F.CODE AS classCode,
     'homeroom' AS classType,
     F.ROOM AS location,
-    org.SCHOOL_ID AS schoolSourcedId,
-    F.FORM_ID AS termSourcedIds
-    /* null AS subjects */
-    /* null AS subjectCodes */
-    /* null as periods */
+    org.SCHOOL_ID AS school,
+    /* NEST dbo.year AS term, */
+    '' AS subjects,
+    '' AS subjectCodes,
+    '' as periods 
 FROM
     dbo.FORM AS F
         INNER JOIN
@@ -70,7 +62,14 @@ FROM
         INNER JOIN
     dbo.FORM_YEAR
         ON FORM_YEAR.CODE = F.YEAR_CODE
+WHERE
+    F.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
-
-
+-- name: select-classes-homeroom-terms
+select year.year_id
+from dbo.year
+inner join dbo.form
+    on form.academic_year = year.code
+where form.academic_year = @p1
+and form.form_id = @p2
