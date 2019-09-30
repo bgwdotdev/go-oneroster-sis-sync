@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -36,12 +37,15 @@ func main() {
 		log.Error(err)
 	}
 	fmt.Println(string(o))
-	postLogin()
+	token := postLogin()
+	for _, v := range classes {
+		putData(v, "/classes/"+v.SourcedId, token)
+	}
 }
 
-func postLogin() {
+func postLogin() string {
 	response, err := http.PostForm(
-		(viper.GetString("api_url") + "/v1/login"),
+		(viper.GetString("api_url") + "/login"),
 		url.Values{
 			"clientid":     {viper.GetString("api_ci")},
 			"clientsecret": {viper.GetString("api_cs")},
@@ -55,7 +59,36 @@ func postLogin() {
 	if err != nil {
 		log.Error(err)
 	}
-	fmt.Println(string(token))
+	log.Debug(string(token))
+	return string(token)
+}
+
+func putData(data interface{}, endpoint, token string) {
+	json, err := json.Marshal(data)
+	if err != nil {
+		log.Error(err)
+	}
+	url := viper.GetString("api_url") + endpoint
+	req, err := http.NewRequest(
+		"PUT",
+		url,
+		bytes.NewBuffer(json),
+	)
+	// remove special characters from "token"\n -- implementation error?
+	t := token[1 : len(token)-2]
+	bearer := "Bearer " + t
+	req.Header.Add("Authorization", bearer)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error(err)
+	}
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+	}
+	log.Info(string(b))
 }
 
 func buildClasses(db *sql.DB, dot *dotsql.DotSql) []or.Classes {
