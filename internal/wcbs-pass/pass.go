@@ -24,47 +24,69 @@ func subQuery(rows *sql.Rows, oType string) []*or.Nested {
 }
 
 func BuildClasses(db *sql.DB, dot *dotsql.DotSql) []or.Classes {
-	rows, err := dot.Query(db, "select-classes-scheduled", viper.Get("sis_academic_year"))
-	if err != nil {
-		log.Error(err)
-	}
 	var classes []or.Classes
-	for rows.Next() {
-		var j or.Classes
-		var course or.Nested
-		var org or.Nested
-		var subjects string
-		err = rows.Scan(
-			&j.SourcedId,
-			&j.Status,
-			&j.DateLastModified,
-			&j.Title,
-			&course.SourcedId,
-			&j.ClassCode,
-			&j.ClassType,
-			&j.Location,
-			&org.SourcedId,
-			&subjects,
-		)
+	c := []string{"select-classes-scheduled", "select-classes-homeroom"}
+	for _, v := range c {
+		rows, err := dot.Query(db, v, viper.Get("sis_academic_year"))
 		if err != nil {
 			log.Error(err)
 		}
-		course.Type = "course"
-		j.Course = &course
-		org.Type = "org"
-		j.School = &org
-		j.Subjects = append(j.Subjects, subjects)
-		termRows, err := dot.Query(
-			db,
-			"select-classes-scheduled-terms",
-			viper.Get("sis_academic_year"),
-			j.SourcedId,
-		)
-		if err != nil {
-			log.Error(err)
+		for rows.Next() {
+			var j or.Classes
+			var course or.Nested
+			var org or.Nested
+			var grades string
+			var subjects string
+			var subjectCodes string
+			var periods string
+			err = rows.Scan(
+				&j.SourcedId,
+				&j.Status,
+				&j.DateLastModified,
+				&j.Title,
+				&grades,
+				&course.SourcedId,
+				&j.ClassCode,
+				&j.ClassType,
+				&j.Location,
+				&org.SourcedId,
+				&subjects,
+				&subjectCodes,
+				&periods,
+			)
+			if err != nil {
+				log.Error(err)
+			}
+			course.Type = "course"
+			j.Course = &course
+			org.Type = "org"
+			j.School = &org
+			if grades != "" {
+				j.Grades = append(j.Grades, grades)
+			}
+			if subjects != "" {
+				j.Subjects = append(j.Subjects, subjects)
+			}
+			if subjectCodes != "" {
+				j.SubjectCodes = append(j.SubjectCodes, subjectCodes)
+			}
+			if periods != "" {
+				j.Periods = append(j.Periods, periods)
+			}
+
+			termRows, err := dot.Query(
+				db,
+				(v + "-terms"),
+				viper.Get("sis_academic_year"),
+				j.SourcedId,
+			)
+			if err != nil {
+				log.Error(err)
+			}
+			j.Terms = subQuery(termRows, "academicSessions")
+
+			classes = append(classes, j)
 		}
-		j.Terms = subQuery(termRows, "academicSessions")
-		classes = append(classes, j)
 	}
 	return classes
 }
