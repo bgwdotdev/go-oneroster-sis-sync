@@ -8,6 +8,7 @@ import (
 	"github.com/gchaincl/dotsql"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"time"
 )
 
 func subQuery(rows *sql.Rows, oType string) []*or.Nested {
@@ -92,8 +93,8 @@ func BuildUsers(db *sql.DB, dot *dotsql.DotSql) []or.Users {
 			)
 			if err != nil {
 				log.Error(err)
-				log.Warn(string(o.SourcedId))
 			}
+			o.DateLastModified = time.Now()
 			if userIds.Identifier != "" {
 				userIds.Type = "placeholder"
 				o.UserIds = append(o.UserIds, &userIds)
@@ -141,6 +142,7 @@ func BuildOrgs(db *sql.DB, dot *dotsql.DotSql) []or.Orgs {
 			if err != nil {
 				log.Error(err)
 			}
+			o.DateLastModified = time.Now()
 			if parent.SourcedId != "" {
 				parent.Type = "org"
 				o.Parent = &parent
@@ -187,6 +189,10 @@ func BuildEnrollments(db *sql.DB, dot *dotsql.DotSql) []or.Enrollments {
 				&o.BeginDate,
 				&o.EndDate,
 			)
+			if err != nil {
+				log.Error(err)
+			}
+			o.DateLastModified = time.Now()
 			user.Type = "user"
 			o.User = &user
 			class.Type = "class"
@@ -231,6 +237,7 @@ func BuildCourses(db *sql.DB, dot *dotsql.DotSql) []or.Courses {
 			if err != nil {
 				log.Error(err)
 			}
+			o.DateLastModified = time.Now()
 			if schoolYear.SourcedId != "" {
 				schoolYear.Type = "academicSession"
 				o.SchoolYear = &schoolYear
@@ -276,6 +283,7 @@ func BuildAcademicSessions(db *sql.DB, dot *dotsql.DotSql) []or.AcademicSessions
 			if err != nil {
 				log.Error(err)
 			}
+			o.DateLastModified = time.Now()
 			academicSessions = append(academicSessions, o)
 		}
 	}
@@ -317,6 +325,7 @@ func BuildClasses(db *sql.DB, dot *dotsql.DotSql) []or.Classes {
 			if err != nil {
 				log.Error(err)
 			}
+			j.DateLastModified = time.Now()
 			course.Type = "course"
 			j.Course = &course
 			org.Type = "org"
