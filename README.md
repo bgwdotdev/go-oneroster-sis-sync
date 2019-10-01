@@ -33,8 +33,8 @@ goors-sync \
 ### envs
 
 All envs should be prefixed with `GOORS`  
-Example Bash:`export GOORS_ENV='myenv'`  
-Example Powershell: `$ENV:GOORS_ENV='myenv'`  
+Example Bash:`export GOORS_ENV='value'`  
+Example Powershell: `$ENV:GOORS_ENV="value"`  
 
 ``` 
 GOORS_API_CI='username'
@@ -42,6 +42,6 @@ GOORS_API_CS='password'
 GOORS_API_URL='https://goors.mydomain.com/ims/oneroster/v1p1'
 GOORS_SIS_ACADEMIC_YEAR='2019'
 GOORS_SQL_FILE_PATH='./pat/to/queries.sql'
-GOORS_SQLCONNSTRING='sqlserver://username:password@host:port?database=MySIS&connection+timeout=30"
+GOORS_SQLCONNSTRING='sqlserver://username:password@host:port?database=MySIS&connection+timeout=30'
 ```
 
