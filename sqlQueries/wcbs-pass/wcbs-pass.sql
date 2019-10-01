@@ -349,14 +349,12 @@ FROM
         ON N.NAME_ID = U.NAME_ID
     inner join dbo.school
     on school.code = U.school
-    /*
 WHERE
     U.CATEGORY = 'TEA001'
     OR
     U.CATEGORY = 'SUPPLY'
     OR
     U.CATEGORY = 'EARLY'
-    */
 ORDER BY
     sourcedId
 
@@ -387,12 +385,10 @@ FROM
         ON N.NAME_ID = U.NAME_ID
     inner join dbo.school
     on school.code = U.school
-    /*
 WHERE
     U.CATEGORY = 'NON001'
     OR
     U.CATEGORY = 'COACH'
-    */
 ORDER BY
     sourcedId
 
