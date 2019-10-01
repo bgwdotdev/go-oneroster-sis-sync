@@ -26,6 +26,7 @@ goors-sync \
     -P $clientSecret \
     -u "https://goors.mydomain.com/ims/oneroster/v1p1" \
     -y $currentAcademicYear \
+    -m $lastModifiedAfter \
     -p "./path/to/queries.sql" \
     -s "sqlserver://username:password@host:port?database=MySIS&connection+timeout=30"
 ```
@@ -41,7 +42,8 @@ GOORS_API_CI='username'
 GOORS_API_CS='password'
 GOORS_API_URL='https://goors.mydomain.com/ims/oneroster/v1p1'
 GOORS_SIS_ACADEMIC_YEAR='2019'
-GOORS_SQL_FILE_PATH='./pat/to/queries.sql'
+GOORS_SIS_LAST_MODIFIED='2019-01-01'
+GOORS_SQL_FILE_PATH='./path/to/queries.sql'
 GOORS_SQLCONNSTRING='sqlserver://username:password@host:port?database=MySIS&connection+timeout=30'
 ```
 
