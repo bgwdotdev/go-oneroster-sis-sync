@@ -121,7 +121,7 @@ SELECT
     P.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID AS schoolSourcedId,
     'student' AS role,
-    '' AS 'primary',
+    0 AS 'primary',
     '' AS beginDate,
     '' AS endDate
 FROM
@@ -147,7 +147,7 @@ SELECT
     ,SCHOOL.SCHOOL_ID AS schoolSourcedId
     ,PUPIL.NAME_ID AS userSourcedId
     ,'student' AS role
-    ,'' AS 'primary'
+    ,0 AS 'primary'
     ,'' AS beginDate 
     ,'' AS endDate
 FROM
