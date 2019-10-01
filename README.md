@@ -47,3 +47,9 @@ GOORS_SQL_FILE_PATH='./path/to/queries.sql'
 GOORS_SQLCONNSTRING='sqlserver://username:password@host:port?database=MySIS&connection+timeout=30'
 ```
 
+### WCBS PASS Conf
+
+The wcbs-pass.sql file may have to modified to change the
+'U.CATEGORY' (STAFF.CATEGORY) to match your SIS config of 
+teaching vs. non-teaching staff until PASS provides
+standardised support.
