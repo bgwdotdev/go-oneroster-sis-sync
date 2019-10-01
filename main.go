@@ -55,11 +55,20 @@ func init() {
 	flag.StringP(
 		"sis-academic-year",
 		"y",
-		"2003",
+		"",
 		"The academic year of sis to pull (required)",
 	)
 	viper.BindPFlag("sis_academic_year", flag.Lookup("sis-academic-year"))
 	viper.BindEnv("sis_academic_year")
+
+	flag.StringP(
+		"sis-last-modified",
+		"m",
+		"2000-01-01",
+		"Filter anything after last modified date",
+	)
+	viper.BindPFlag("sis_last_modified", flag.Lookup("sis-last-modified"))
+	viper.BindEnv("sis_last_modified")
 
 	flag.StringP(
 		"or-api-url",
