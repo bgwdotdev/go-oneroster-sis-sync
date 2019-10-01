@@ -10,6 +10,8 @@ SELECT
 FROM 
     dbo.YEAR AS Y INNER JOIN
     dbo.SCHOOL_CALENDAR AS SC ON SC.ACADEMIC_YEAR = Y.CODE
+WHERE Y.LAST_AMEND_DATE = @p1
+AND Y.CODE = @p2
 ORDER BY 
     sourcedId
 
@@ -40,7 +42,8 @@ FROM
         INNER JOIN
     dbo.SUBJECT AS SUB
         ON SUB.CODE = S.SUBJECT
-WHERE academic_year = @p1
+WHERE S.LAST_AMEND_DATE > @p1
+AND S.academic_year = @p2
 ORDER BY
     sourcedId
 -- name: select-classes-scheduled-terms
@@ -75,8 +78,8 @@ FROM
         INNER JOIN
     dbo.FORM_YEAR
         ON FORM_YEAR.CODE = F.YEAR_CODE
-WHERE
-    F.ACADEMIC_YEAR = @p1
+WHERE F.LAST_AMEND_DATE = @p1
+AND F.ACADEMIC_YEAR = @p2
 ORDER BY
     sourcedId
 -- name: select-classes-homeroom-terms
@@ -84,8 +87,9 @@ select year.year_id
 from dbo.year
 inner join dbo.form
     on form.academic_year = year.code
-where form.academic_year = @p1
-and form.form_id = @p2
+where year.last_amend_date = @p1
+and form.academic_year = @p2
+and form.form_id = @p3
 
 -- name: select-courses
 SELECT
@@ -104,6 +108,7 @@ FROM
         INNER JOIN
     dbo.SCHOOL AS org
         ON org.CODE = S.SCHOOL
+WHERE S.LAST_AMEND_DATE > @p1
 ORDER BY
     sourcedId
 
@@ -130,8 +135,7 @@ FROM
         INNER JOIN
     dbo.PUPIL
         ON PUPIL.PUPIL_ID = P.PUPIL_ID
-WHERE
-    SS.ACADEMIC_YEAR = @p1
+WHERE SS.ACADEMIC_YEAR = @p1
 ORDER BY
     sourcedId
 -- name: select-enrollments-homeroom-pupil
@@ -278,6 +282,7 @@ SELECT
     '' AS children -- GUIDRef[0..*]
 FROM 
     dbo.SCHOOL
+WHERE LAST_AMEND_DATE > @p1
 ORDER BY
     sourcedId 
 
@@ -315,10 +320,9 @@ FROM
         ON form.YEAR_CODE = formYear.CODE
     inner join dbo.SCHOOL
         on p.school = school.code
-WHERE 
-    P.ACADEMIC_YEAR = @p1
-    AND
-    form.ACADEMIC_YEAR = @p1
+WHERE P.LAST_AMEND_DATE > @p1
+AND P.ACADEMIC_YEAR = @p2
+AND form.ACADEMIC_YEAR = @p2
 ORDER BY
     sourcedId
 
@@ -355,6 +359,7 @@ WHERE
     U.CATEGORY = 'SUPPLY'
     OR
     U.CATEGORY = 'EARLY'
+AND U.LAST_AMEND_DATE > @p1
 ORDER BY
     sourcedId
 
@@ -389,7 +394,6 @@ WHERE
     U.CATEGORY = 'NON001'
     OR
     U.CATEGORY = 'COACH'
+AND U.LAST_AMEND_DATE > @p1
 ORDER BY
     sourcedId
-
-

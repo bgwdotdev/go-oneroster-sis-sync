@@ -59,7 +59,9 @@ func BuildUsers(db *sql.DB, dot *dotsql.DotSql) []or.Users {
 		"select-users-staff-support",
 	}
 	for _, q := range queries {
-		rows, err := dot.Query(db, q, viper.Get("sis_academic_year"))
+		lm := viper.Get("sis_last_modified")
+		ay := viper.Get("sis_academic_year")
+		rows, err := dot.Query(db, q, lm, ay)
 		if err != nil {
 			log.Error(err)
 		}
@@ -118,7 +120,8 @@ func BuildOrgs(db *sql.DB, dot *dotsql.DotSql) []or.Orgs {
 	var orgs []or.Orgs
 	queries := []string{"select-orgs"}
 	for _, q := range queries {
-		rows, err := dot.Query(db, q, viper.Get("sis_academic_year"))
+		lm := viper.Get("sis_last_modified")
+		rows, err := dot.Query(db, q, lm)
 		if err != nil {
 			log.Error(err)
 		}
@@ -201,7 +204,9 @@ func BuildCourses(db *sql.DB, dot *dotsql.DotSql) []or.Courses {
 	var courses []or.Courses
 	queries := []string{"select-courses"}
 	for _, q := range queries {
-		rows, err := dot.Query(db, q, viper.Get("sis_academic_year"))
+		lm := viper.Get("sis_last_modified")
+		ay := viper.Get("sis_academic_year")
+		rows, err := dot.Query(db, q, lm, ay)
 		if err != nil {
 			log.Error(err)
 		}
@@ -252,7 +257,9 @@ func BuildAcademicSessions(db *sql.DB, dot *dotsql.DotSql) []or.AcademicSessions
 	var academicSessions []or.AcademicSessions
 	queries := []string{"select-academicSession-years"}
 	for _, q := range queries {
-		rows, err := dot.Query(db, q, viper.Get("sis_academic_year"))
+		lm := viper.Get("sis_last_modified")
+		ay := viper.Get("sis_academic_year")
+		rows, err := dot.Query(db, q, lm, ay)
 		if err != nil {
 			log.Error(err)
 		}
@@ -279,7 +286,9 @@ func BuildClasses(db *sql.DB, dot *dotsql.DotSql) []or.Classes {
 	var classes []or.Classes
 	c := []string{"select-classes-scheduled", "select-classes-homeroom"}
 	for _, v := range c {
-		rows, err := dot.Query(db, v, viper.Get("sis_academic_year"))
+		lm := viper.Get("sis_last_modified")
+		ay := viper.Get("sis_academic_year")
+		rows, err := dot.Query(db, v, lm, ay)
 		if err != nil {
 			log.Error(err)
 		}
