@@ -34,23 +34,19 @@ func init() {
 		"sqlConnectionUrl",
 		"s",
 		"",
-		"sql server connection url (required)",
+		"sql connection url e.g.'sqlserver://username:password@host/instance?database=mySIS' (required)",
 	)
 	viper.BindPFlag("sqlconnstring", flag.Lookup("sqlConnectionUrl"))
 	viper.BindEnv("sqlconnstring")
-	cd := "sqlserver://sa:Passw0rd@rmanjaro:1400?database=passtrains&connection+timeout=30"
-	viper.SetDefault("sqlconnstring", cd)
 
 	flag.StringP(
 		"sql-file-path",
 		"p",
-		"",
+		"./sqlQueries/wcbs-pass.sql",
 		"Sql query file path (required)",
 	)
 	viper.BindPFlag("sql_file_path", flag.Lookup("sql-file-path"))
 	viper.BindEnv("sql_file_path")
-	fd := "./sqlQueries/"
-	viper.SetDefault("sql_file_path", fd)
 
 	flag.StringP(
 		"sis-academic-year",
@@ -73,7 +69,7 @@ func init() {
 	flag.StringP(
 		"or-api-url",
 		"u",
-		"localhost:3000",
+		"localhost:3000/ims/oneroster/v1p1",
 		"The URL of the oneroster API (required)",
 	)
 	viper.BindPFlag("api_url", flag.Lookup("or-api-url"))
