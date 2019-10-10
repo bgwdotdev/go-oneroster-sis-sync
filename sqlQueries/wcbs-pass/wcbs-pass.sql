@@ -10,8 +10,8 @@ SELECT
 FROM 
     dbo.YEAR AS Y INNER JOIN
     dbo.SCHOOL_CALENDAR AS SC ON SC.ACADEMIC_YEAR = Y.CODE
-WHERE Y.LAST_AMEND_DATE = @p1
-AND Y.CODE = @p2
+WHERE Y.LAST_AMEND_DATE > @p1
+AND Y.CODE = 2019
 ORDER BY 
     sourcedId
 
@@ -25,7 +25,8 @@ SELECT
     SUB.SUBJECT_ID AS course,
     S.SET_CODE AS classCode,
     'scheduled' AS classType,
-    S.ROOM AS location,
+    /* S.ROOM AS location, */
+    '' AS location,
     org.SCHOOL_ID AS school,
     /* NEST dbo.year AS terms, */ 
     SUB.DESCRIPTION AS subjects,
