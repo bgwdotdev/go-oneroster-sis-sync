@@ -79,7 +79,7 @@ FROM
         INNER JOIN
     dbo.FORM_YEAR
         ON FORM_YEAR.CODE = F.YEAR_CODE
-WHERE F.LAST_AMEND_DATE = @p1
+WHERE F.LAST_AMEND_DATE > @p1
 AND F.ACADEMIC_YEAR = @p2
 ORDER BY
     sourcedId
@@ -88,9 +88,8 @@ select year.year_id
 from dbo.year
 inner join dbo.form
     on form.academic_year = year.code
-where year.last_amend_date = @p1
-and form.academic_year = @p2
-and form.form_id = @p3
+where form.academic_year = @p1
+and form.form_id = @p2
 
 -- name: select-courses
 SELECT
