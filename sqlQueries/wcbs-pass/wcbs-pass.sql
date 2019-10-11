@@ -62,10 +62,10 @@ SELECT
     /* F.LAST_AMEND_DATE AS dateLastModified, */
     F.DESCRIPTION AS title,
     FORM_YEAR.AGE_RANGE AS grades,
-    '<PLACEHOLDER>' AS course,
+    '40705669' AS course, /* CHANGE FOR YOUR IMPORT */
     F.CODE AS classCode,
     'homeroom' AS classType,
-    F.ROOM AS location,
+    case when F.ROOM is null then '' else F.ROOM end AS location,
     org.SCHOOL_ID AS school,
     /* NEST dbo.year AS term, */
     '' AS subjects,
@@ -291,7 +291,7 @@ SELECT
     P.NAME_ID AS sourcedId,
     case when P.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* P.LAST_AMEND_DATE as dateLastModified, */
-    N.EMAIL_ADDRESS AS username,
+    case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS username,
     '' AS userIds, -- GUIDRef[0..*]
     /* change to PASS API allow? */
     case when P.IN_USE = 'Y' then 'true' else 'false' end AS enabledUser,
@@ -300,7 +300,7 @@ SELECT
     '' AS middlename,
     'student' AS role,
     P.CODE AS identifier,
-    N.EMAIL_ADDRESS AS email,
+    case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS email,
     '' AS sms,
     '' AS phone,
     '' AS agentSourcedIds, -- GUIDRef[0..*]
@@ -331,7 +331,7 @@ SELECT
     U.NAME_ID AS sourcedId,
     case when U.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* U.LAST_AMEND_DATE AS dateLastModified, */
-    U.INTERNAL_EMAIL_ADDRESS AS username,
+    case when U.INTERNAL_EMAIL_ADDRESS is null then 'NULL' else U.INTERNAL_EMAIL_ADDRESS end AS username,
     '' AS userIds, -- GUIDRef[0..*]
     case when U.IN_USE = 'Y' then 'true' else 'false' end AS enabledUser,
     N.PREFERRED_NAME AS givenName,
@@ -339,10 +339,10 @@ SELECT
     '' AS middlename,
     'teacher' AS role,
     U.CODE AS identifier,
-    U.INTERNAL_EMAIL_ADDRESS AS email,
+    case when U.INTERNAL_EMAIL_ADDRESS is null then 'NULL' else U.INTERNAL_EMAIL_ADDRESS end AS email,
     '' AS sms,
     '' AS phone,
-    U.NAME_ID AS agentSourcedIds, -- GUIDRef[0..*]
+    '' AS agentSourcedIds, -- GUIDRef[0..*]
     school.school_id AS orgSourcedIds, -- GUIDRef[1..*]
     '' AS grades,
     '' AS password
@@ -368,7 +368,7 @@ SELECT
     U.NAME_ID AS sourcedId,
     case when U.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* U.LAST_AMEND_DATE AS dateLastModified, */
-    U.INTERNAL_EMAIL_ADDRESS AS username,
+    case when U.INTERNAL_EMAIL_ADDRESS is null then 'NULL' else U.INTERNAL_EMAIL_ADDRESS end AS username,
     '' AS userIds, -- GUIDRef[0..*]
     case when U.IN_USE = 'Y' then 'true' else 'false' end AS enabledUser,
     N.PREFERRED_NAME AS givenName,
@@ -376,10 +376,10 @@ SELECT
     '' AS middlename,
     'aide' AS role,
     U.CODE AS identifier,
-    U.INTERNAL_EMAIL_ADDRESS AS email,
+    case when U.INTERNAL_EMAIL_ADDRESS is null then 'NULL' else U.INTERNAL_EMAIL_ADDRESS end AS email,
     '' AS sms,
     '' AS phone,
-    U.NAME_ID AS agentSourcedIds, -- GUIDRef[0..*]
+    '' AS agentSourcedIds, -- GUIDRef[0..*]
     school.school_id AS orgSourcedIds, -- GUIDRef[1..*]
     '' AS grades,
     '' AS password
