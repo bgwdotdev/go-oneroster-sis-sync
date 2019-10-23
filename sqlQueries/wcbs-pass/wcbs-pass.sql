@@ -143,9 +143,9 @@ SELECT
     CONCAT(FORM.FORM_ID, PUPIL.PUPIL_ID) AS sourcedId
     , case when FORM.IN_USE = 'Y' then 'active' else 'inactive' end AS status
     /* ,null AS dateLastModified */
+    ,PUPIL.NAME_ID AS userSourcedId
     ,FORM.FORM_ID AS classSourcedId
     ,SCHOOL.SCHOOL_ID AS schoolSourcedId
-    ,PUPIL.NAME_ID AS userSourcedId
     ,'student' AS role
     ,0 AS 'primary'
     ,'' AS beginDate 
@@ -171,9 +171,9 @@ SELECT
    CONCAT(FORM.FORM_ID, STAFF.NAME_ID) AS sourcedId
     , case when FORM.IN_USE = 'Y' then 'active' else 'inactive' end AS status
     /* ,null AS dateLastModified */
+    ,STAFF.NAME_ID AS userSourcedId
     ,FORM.FORM_ID As classSourcedId
     ,SCHOOL.SCHOOL_ID AS schoolSourcedId
-    ,STAFF.NAME_ID AS userSourcedId
     ,'teacher' AS role
     ,@T AS 'primary'    
     ,'' AS beginDate
@@ -198,9 +198,9 @@ SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
     case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified */
+    S.NAME_ID AS userSourcedId,
     SS.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID as schoolSourcedId,
-    S.NAME_ID AS userSourcedId,
     'teacher' AS role,
     @T AS 'primary',
     '' AS begindate,
@@ -225,9 +225,9 @@ SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
     case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified */
+    S.NAME_ID AS userSourcedId,
     SS.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID as schoolSourcedId,
-    S.NAME_ID AS userSourcedId,
     'teacher' AS role,
     @F AS 'primary',
     '' AS begindate,
@@ -250,9 +250,9 @@ SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
     case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
     /* null AS dateLastModified */
+    S.NAME_ID AS userSourcedId,
     SS.SUBJECT_SET_ID AS classSourcedId,
     org.SCHOOL_ID as schoolSourcedId,
-    S.NAME_ID AS userSourcedId,
     'teacher' AS role,
     0 AS 'primary',
     '' AS begindate,
