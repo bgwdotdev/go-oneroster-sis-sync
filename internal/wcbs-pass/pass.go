@@ -287,6 +287,7 @@ func BuildAcademicSessions(db *sql.DB, dot *dotsql.DotSql) []or.AcademicSessions
 				&o.Title,
 				&o.StartDate,
 				&o.EndDate,
+				&o.Type,
 				&o.SchoolYear,
 			)
 			if err != nil {

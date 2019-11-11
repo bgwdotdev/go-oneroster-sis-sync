@@ -1,11 +1,12 @@
 -- name: select-academicSession-years
 SELECT
     Y.YEAR_ID AS sourcedId,
-    case when Y.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when Y.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* Y.LAST_AMEND_DATE AS dateLastModified, */
     Y.DESCRIPTION AS title,
     SC.YEAR_START AS startDate,
     SC.YEAR_END AS endDate,
+    'schoolYear' AS 'type',
     Y.CODE AS schoolYear
 FROM 
     dbo.YEAR AS Y INNER JOIN
@@ -18,7 +19,7 @@ ORDER BY
 -- name: select-classes-scheduled
 SELECT
     S.SUBJECT_SET_ID AS sourcedId,
-    case when S.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when S.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* S.LAST_AMEND_DATE AS dateLastModified, */
     S.DESCRIPTION AS title,
     '' AS grades,
@@ -58,7 +59,7 @@ and subject_set.subject_set_id = @p2
 -- name: select-classes-homeroom
 SELECT
     F.FORM_ID AS sourcedId,
-    case when F.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when F.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* F.LAST_AMEND_DATE AS dateLastModified, */
     F.DESCRIPTION AS title,
     FORM_YEAR.AGE_RANGE AS grades,
@@ -94,7 +95,7 @@ and form.form_id = @p2
 -- name: select-courses
 SELECT
     S.SUBJECT_ID AS sourcedId,
-    case when S.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when S.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* S.LAST_AMEND_DATE AS dateLastModified, */
     S.DESCRIPTION AS title,
     '' AS schoolYear, -- GUIDRef[0..1]
@@ -115,7 +116,7 @@ ORDER BY
 -- name: select-enrollments-scheduled-pupil
 SELECT
     P.PUPIL_SET_ID AS sourcedId,
-    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* null AS dateLastModified, */
     PUPIL.NAME_ID AS userSourcedId,
     P.SUBJECT_SET_ID AS classSourcedId,
@@ -141,7 +142,7 @@ ORDER BY
 -- name: select-enrollments-homeroom-pupil
 SELECT
     CONCAT(FORM.FORM_ID, PUPIL.PUPIL_ID) AS sourcedId
-    , case when FORM.IN_USE = 'Y' then 'active' else 'inactive' end AS status
+    , case when FORM.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status
     /* ,null AS dateLastModified */
     ,PUPIL.NAME_ID AS userSourcedId
     ,FORM.FORM_ID AS classSourcedId
@@ -169,7 +170,7 @@ DECLARE @T bit
 SET @T=1
 SELECT
    CONCAT(FORM.FORM_ID, STAFF.NAME_ID) AS sourcedId
-    , case when FORM.IN_USE = 'Y' then 'active' else 'inactive' end AS status
+    , case when FORM.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status
     /* ,null AS dateLastModified */
     ,STAFF.NAME_ID AS userSourcedId
     ,FORM.FORM_ID As classSourcedId
@@ -196,7 +197,7 @@ DECLARE @T bit
 SET @T=1
 SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
-    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* null AS dateLastModified */
     S.NAME_ID AS userSourcedId,
     SS.SUBJECT_SET_ID AS classSourcedId,
@@ -223,7 +224,7 @@ DECLARE @F bit
 SET @F=0
 SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
-    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* null AS dateLastModified */
     S.NAME_ID AS userSourcedId,
     SS.SUBJECT_SET_ID AS classSourcedId,
@@ -248,7 +249,7 @@ ORDER BY
 -- name: select-enrollments-scheduled-teacher-3
 SELECT
     CONCAT(SS.SUBJECT_SET_ID, S.NAME_ID) AS sourcedId,
-    case when SS.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when SS.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* null AS dateLastModified */
     S.NAME_ID AS userSourcedId,
     SS.SUBJECT_SET_ID AS classSourcedId,
@@ -273,7 +274,7 @@ ORDER BY
 -- name: select-orgs
 SELECT
     SCHOOL_ID AS sourcedId,
-    case when IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* null AS dateLastModified */
     CODE as name,
     'school' AS 'type',
@@ -289,7 +290,7 @@ ORDER BY
 -- name: select-users-pupil
 SELECT
     P.NAME_ID AS sourcedId,
-    case when P.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when P.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* P.LAST_AMEND_DATE as dateLastModified, */
     case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS username,
     '' AS userIds, -- GUIDRef[0..*]
@@ -329,7 +330,7 @@ ORDER BY
 -- name: select-users-staff
 SELECT 
     U.NAME_ID AS sourcedId,
-    case when U.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when U.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* U.LAST_AMEND_DATE AS dateLastModified, */
     case when U.INTERNAL_EMAIL_ADDRESS is null then 'NULL' else U.INTERNAL_EMAIL_ADDRESS end AS username,
     '' AS userIds, -- GUIDRef[0..*]
@@ -366,7 +367,7 @@ ORDER BY
 -- name: select-users-staff-support
 SELECT 
     U.NAME_ID AS sourcedId,
-    case when U.IN_USE = 'Y' then 'active' else 'inactive' end AS status,
+    case when U.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
     /* U.LAST_AMEND_DATE AS dateLastModified, */
     case when U.INTERNAL_EMAIL_ADDRESS is null then 'NULL' else U.INTERNAL_EMAIL_ADDRESS end AS username,
     '' AS userIds, -- GUIDRef[0..*]
