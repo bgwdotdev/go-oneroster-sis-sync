@@ -301,8 +301,11 @@ SELECT P.NAME_ID AS 'user.sourcedId'
             THEN 'NULL'
         ELSE N.EMAIL_ADDRESS
         END AS 'user.username'
-    , '' AS 'user.userIds.type'
-    , '' AS 'user.userIds.identifier'
+    , (
+        SELECT '' AS 'type'
+            , '' AS 'identifier'
+        FOR json path
+        ) AS 'user.userIds'
     , CASE 
         WHEN P.IN_USE = 'Y'
             THEN 'true'
@@ -328,9 +331,22 @@ SELECT P.NAME_ID AS 'user.sourcedId'
         WHERE p.name_id = r.from_name_id
         FOR json path
         ) AS 'user.agents'
-    , school.SCHOOL_ID AS 'user.orgs.sourcedId'
-    , 'org' AS 'user.orgs.type'
-    , formYear.AGE_RANGE AS 'user.grades' -- list [1,2,3...]
+    , (
+        SELECT s.SCHOOL_ID AS 'sourcedId'
+            , 'org' AS 'type'
+        FROM dbo.school AS s
+        WHERE p.school = s.CODE
+        FOR json PATH
+        ) AS 'user.orgs'
+    , JSON_QUERY(CONCAT (
+            '["'
+            , formYear.AGE_RANGE
+            /* -- TEMPLATE FOR ARRAY VALUES
+            , '","'
+            , formyear.AGE_RANGE_2
+            */
+            , '"]'
+            )) AS 'user.grades'
     , '' AS 'user.password'
 FROM dbo.PUPIL AS P
 INNER JOIN dbo.NAME AS N
@@ -339,8 +355,6 @@ INNER JOIN dbo.FORM AS form
     ON P.FORM = form.CODE
 INNER JOIN dbo.FORM_YEAR AS formYear
     ON form.YEAR_CODE = formYear.CODE
-INNER JOIN dbo.SCHOOL
-    ON p.school = school.code
 WHERE P.LAST_AMEND_DATE > @p1
     AND P.ACADEMIC_YEAR = @p2
     AND form.ACADEMIC_YEAR = @p2
