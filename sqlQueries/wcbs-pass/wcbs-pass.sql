@@ -288,44 +288,65 @@ ORDER BY
     sourcedId 
 
 -- name: select-users-pupil
-SELECT
-    P.NAME_ID AS sourcedId,
-    case when P.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
+SELECT P.NAME_ID AS 'user.sourcedId'
+    , CASE 
+        WHEN P.IN_USE = 'Y'
+            THEN 'active'
+        ELSE 'tobedeleted'
+        END AS 'user.status'
+    ,
     /* P.LAST_AMEND_DATE as dateLastModified, */
-    case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS username,
-    '' AS userIds, -- GUIDRef[0..*]
-    /* change to PASS API allow? */
-    case when P.IN_USE = 'Y' then 'true' else 'false' end AS enabledUser,
-    N.PREFERRED_NAME AS givenName,
-    N.SURNAME AS familyName,
-    '' AS middlename,
-    'student' AS role,
-    P.CODE AS identifier,
-    case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS email,
-    '' AS sms,
-    '' AS phone,
-    '' AS agentSourcedIds, -- GUIDRef[0..*]
-    school.SCHOOL_ID AS orgSourcedIds, --GUIDRef[1..*]
-    formYear.AGE_RANGE AS grades,
-    '' AS password
-FROM
-    dbo.PUPIL AS P
-        INNER JOIN
-    dbo.NAME AS N
-        ON P.NAME_ID = N.NAME_ID
-        INNER JOIN
-    dbo.FORM AS form
-        ON P.FORM = form.CODE
-        INNER JOIN
-    dbo.FORM_YEAR AS formYear
-        ON form.YEAR_CODE = formYear.CODE
-    inner join dbo.SCHOOL
-        on p.school = school.code
+    CASE 
+        WHEN N.EMAIL_ADDRESS IS NULL
+            THEN 'NULL'
+        ELSE N.EMAIL_ADDRESS
+        END AS 'user.username'
+    , '' AS 'user.userIds.type'
+    , '' AS 'user.userIds.identifier'
+    , CASE 
+        WHEN P.IN_USE = 'Y'
+            THEN 'true'
+        ELSE 'false'
+        END AS 'user.enabledUser'
+    , N.PREFERRED_NAME AS 'user.givenName' -- change to PASS API 'allow' ?
+    , N.SURNAME AS 'user.familyName'
+    , '' AS 'user.middlename'
+    , 'student' AS 'user.role'
+    , P.CODE AS 'user.identifier'
+    , CASE 
+        WHEN N.EMAIL_ADDRESS IS NULL
+            THEN 'NULL'
+        ELSE N.EMAIL_ADDRESS
+        END AS 'user.email'
+    , '' AS 'user.sms'
+    , '' AS 'user.phone'
+    , (
+        SELECT r.to_name_id AS 'sourcedId'
+            , r.rank AS 'rank'
+            , 'user' AS 'type'
+        FROM dbo.relationship AS r
+        WHERE p.name_id = r.from_name_id
+        FOR json path
+        ) AS 'user.agents'
+    , school.SCHOOL_ID AS 'user.orgs.sourcedId'
+    , 'org' AS 'user.orgs.type'
+    , formYear.AGE_RANGE AS 'user.grades' -- list [1,2,3...]
+    , '' AS 'user.password'
+FROM dbo.PUPIL AS P
+INNER JOIN dbo.NAME AS N
+    ON P.NAME_ID = N.NAME_ID
+INNER JOIN dbo.FORM AS form
+    ON P.FORM = form.CODE
+INNER JOIN dbo.FORM_YEAR AS formYear
+    ON form.YEAR_CODE = formYear.CODE
+INNER JOIN dbo.SCHOOL
+    ON p.school = school.code
 WHERE P.LAST_AMEND_DATE > @p1
-AND P.ACADEMIC_YEAR = @p2
-AND form.ACADEMIC_YEAR = @p2
-ORDER BY
-    sourcedId
+    AND P.ACADEMIC_YEAR = @p2
+    AND form.ACADEMIC_YEAR = @p2
+ORDER BY 'user.sourcedId'
+FOR JSON PATH
+    , ROOT('users')
 
 -- name: select-users-staff
 SELECT 
