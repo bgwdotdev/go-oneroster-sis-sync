@@ -446,7 +446,30 @@ SELECT n.name_id AS 'user.sourcedId'
     , n.PREFERRED_NAME AS 'user.givenName'
     , n.SURNAME AS 'user.familyName'
     , '' AS 'user.middleName'
-    , 'parent' AS 'user.role'
+    , CASE 
+        WHEN EXISTS (
+                SELECT 1
+                FROM dbo.name
+                JOIN dbo.relationship
+                    ON n.name_id = relationship.TO_NAME_ID
+                JOIN dbo.RELATIONSHIP_TYPE AS rety
+                    ON relationship.RELATION_ID = rety.ID
+                WHERE rety.TO_RELATION = 'mother'
+                    OR rety.TO_RELATION = 'father'
+                )
+            THEN 'parent'
+        WHEN EXISTS (
+                SELECT 1
+                FROM dbo.name
+                JOIN dbo.relationship
+                    ON n.name_id = relationship.TO_NAME_ID
+                JOIN dbo.RELATIONSHIP_TYPE AS rety
+                    ON relationship.RELATION_ID = rety.ID
+                WHERE rety.TO_RELATION = 'guardian'
+                )
+            THEN 'guardian'
+        ELSE 'relative'
+        END AS 'user.role'
     , n.NAME_CODE AS 'user.identifier'
     , n.EMAIL_ADDRESS AS 'user.email'
     , '' AS 'user.sms'
@@ -454,24 +477,44 @@ SELECT n.name_id AS 'user.sourcedId'
     , (
         SELECT rel.FROM_NAME_ID AS 'sourcedId'
             , 'user' AS 'type'
+            , pupil.ACADEMIC_YEAR 'academic year'
         FROM dbo.RELATIONSHIP AS rel
-        WHERE n.name_id = rel.TO_NAME_ID
+        JOIN dbo.pupil
+            ON rel.FROM_NAME_ID = pupil.NAME_ID
+        WHERE rel.TO_NAME_ID = n.name_id
+            AND pupil.ACADEMIC_YEAR = @p1
         FOR json path
         ) AS 'user.agents'
     , (
         SELECT s.school_id AS 'sourcedId'
             , 'org' AS 'type'
-        FROM dbo.school AS s
-        WHERE p.school = s.CODE
+        FROM dbo.relationship AS rel
+        JOIN dbo.pupil AS pu
+            ON rel.FROM_NAME_ID = pu.NAME_ID
+        JOIN dbo.school AS s
+            ON pu.school = s.code
+        WHERE rel.TO_NAME_ID = n.NAME_ID
+        GROUP BY s.SCHOOL_ID
         FOR json PATH
         ) AS 'user.orgs'
     -- grades
     , '' AS 'user.password'
 FROM dbo.name AS n
-INNER JOIN dbo.RELATIONSHIP AS r
-    ON r.TO_NAME_ID = n.NAME_ID
-INNER JOIN dbo.pupil AS p
-    ON p.NAME_ID = r.FROM_NAME_ID
-WHERE p.ACADEMIC_YEAR = '2019'
+-- validate user is a primary contact and not pupil
+-- no 'role' flag or column for validating parent/guardian status within pass
+WHERE EXISTS (
+        SELECT 1
+        FROM dbo.name na
+        JOIN dbo.RELATIONSHIP re
+            ON na.name_id = re.to_name_id
+        JOIN dbo.RELATIONSHIP_TYPE rety
+            ON re.RELATION_ID = rety.ID
+        JOIN dbo.pupil pu
+            ON pu.NAM_ID = re.FROM_NAME_ID
+        WHERE n.name_id = re.to_name_id
+            AND re.rank <= 2
+            AND rety.TO_RELATION != 'pupil'
+            AND pu.ACADEMIC_YEAR = @p1
+        )
+ORDER BY n.name_id
 FOR json path
-
