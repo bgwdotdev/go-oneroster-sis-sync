@@ -433,3 +433,45 @@ WHERE
 AND U.LAST_AMEND_DATE > @p1
 ORDER BY
     sourcedId
+
+-- name: select-users-parents
+SELECT n.name_id AS 'user.sourcedId'
+    , n.EMAIL_ADDRESS AS 'user.username'
+    -- userids
+    , CASE 
+        WHEN n.CONTACT_IN_USE = 'Y'
+            THEN 'true'
+        ELSE 'false'
+        END AS 'user.enabledUser'
+    , n.PREFERRED_NAME AS 'user.givenName'
+    , n.SURNAME AS 'user.familyName'
+    , '' AS 'user.middleName'
+    , 'parent' AS 'user.role'
+    , n.NAME_CODE AS 'user.identifier'
+    , n.EMAIL_ADDRESS AS 'user.email'
+    , '' AS 'user.sms'
+    , '' AS 'user.phone'
+    , (
+        SELECT rel.FROM_NAME_ID AS 'sourcedId'
+            , 'user' AS 'type'
+        FROM dbo.RELATIONSHIP AS rel
+        WHERE n.name_id = rel.TO_NAME_ID
+        FOR json path
+        ) AS 'user.agents'
+    , (
+        SELECT s.school_id AS 'sourcedId'
+            , 'org' AS 'type'
+        FROM dbo.school AS s
+        WHERE p.school = s.CODE
+        FOR json PATH
+        ) AS 'user.orgs'
+    -- grades
+    , '' AS 'user.password'
+FROM dbo.name AS n
+INNER JOIN dbo.RELATIONSHIP AS r
+    ON r.TO_NAME_ID = n.NAME_ID
+INNER JOIN dbo.pupil AS p
+    ON p.NAME_ID = r.FROM_NAME_ID
+WHERE p.ACADEMIC_YEAR = '2019'
+FOR json path
+
