@@ -308,8 +308,8 @@ SELECT P.NAME_ID AS 'user.sourcedId'
         ) AS 'user.userIds'
     , CASE 
         WHEN P.IN_USE = 'Y'
-            THEN 'true'
-        ELSE 'false'
+            THEN CAST(1 as bit)
+        ELSE CAST(0 as bit)
         END AS 'user.enabledUser'
     , N.PREFERRED_NAME AS 'user.givenName' -- change to PASS API 'allow' ?
     , N.SURNAME AS 'user.familyName'
@@ -325,10 +325,10 @@ SELECT P.NAME_ID AS 'user.sourcedId'
     , '' AS 'user.phone'
     , (
         SELECT r.to_name_id AS 'sourcedId'
-            , r.rank AS 'rank'
             , 'user' AS 'type'
         FROM dbo.relationship AS r
         WHERE p.name_id = r.from_name_id
+            AND r.rank <= '2'
         FOR json path
         ) AS 'user.agents'
     , (
@@ -360,7 +360,7 @@ WHERE P.LAST_AMEND_DATE > @p1
     AND form.ACADEMIC_YEAR = @p2
 ORDER BY 'user.sourcedId'
 FOR JSON PATH
-    , ROOT('users')
+    --, ROOT('users')
 
 -- name: select-users-staff
 SELECT 
@@ -510,7 +510,7 @@ WHERE EXISTS (
         JOIN dbo.RELATIONSHIP_TYPE rety
             ON re.RELATION_ID = rety.ID
         JOIN dbo.pupil pu
-            ON pu.NAM_ID = re.FROM_NAME_ID
+            ON pu.NAME_ID = re.FROM_NAME_ID
         WHERE n.name_id = re.to_name_id
             AND re.rank <= 2
             AND rety.TO_RELATION != 'pupil'
