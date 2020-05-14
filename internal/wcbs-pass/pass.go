@@ -51,18 +51,18 @@ func RunBuild(db *sql.DB, dot *dotsql.DotSql, token string) {
 	for _, v := range users {
 		sync.PutData(v, "/users/"+v.SourcedId, token)
 	}
-
-	users := BuildJsonUsers(db, dot)
-	sync.PutData(users, "/users", token)
+	usersJson := BuildJsonUsers(db, dot)
+	sync.PutData(usersJson, "/users", token)
 }
 
 func BuildJsonUsers(db *sql.DB, dot *dotsql.DotSql) []or.Userwrap {
 	var users []or.Userwrap
 	queries := []string{
 		"select-users-pupil",
+		"select-users-parents",
 	}
 	for _, q := range queries {
-		// log.Infof("starting: %s", q)
+		log.Infof("starting: %s", q)
 		lm := viper.Get("sis_last_modified")
 		ay := viper.Get("sis_academic_year")
 		rows, err := dot.Query(db, q, lm, ay)
@@ -108,7 +108,6 @@ func BuildJsonUsers(db *sql.DB, dot *dotsql.DotSql) []or.Userwrap {
 func BuildUsers(db *sql.DB, dot *dotsql.DotSql) []or.Users {
 	var users []or.Users
 	queries := []string{
-		"select-users-pupil",
 		"select-users-staff",
 		"select-users-staff-support",
 	}

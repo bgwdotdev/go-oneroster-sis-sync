@@ -440,8 +440,8 @@ SELECT n.name_id AS 'user.sourcedId'
     -- userids
     , CASE 
         WHEN n.CONTACT_IN_USE = 'Y'
-            THEN 'true'
-        ELSE 'false'
+            THEN CAST(1 as bit)
+        ELSE CAST(0 as bit)
         END AS 'user.enabledUser'
     , n.PREFERRED_NAME AS 'user.givenName'
     , n.SURNAME AS 'user.familyName'
@@ -477,12 +477,12 @@ SELECT n.name_id AS 'user.sourcedId'
     , (
         SELECT rel.FROM_NAME_ID AS 'sourcedId'
             , 'user' AS 'type'
-            , pupil.ACADEMIC_YEAR 'academic year'
+          --  , pupil.ACADEMIC_YEAR 'academic year'
         FROM dbo.RELATIONSHIP AS rel
         JOIN dbo.pupil
             ON rel.FROM_NAME_ID = pupil.NAME_ID
         WHERE rel.TO_NAME_ID = n.name_id
-            AND pupil.ACADEMIC_YEAR = @p1
+            AND pupil.ACADEMIC_YEAR = @p2
         FOR json path
         ) AS 'user.agents'
     , (
@@ -514,7 +514,8 @@ WHERE EXISTS (
         WHERE n.name_id = re.to_name_id
             AND re.rank <= 2
             AND rety.TO_RELATION != 'pupil'
-            AND pu.ACADEMIC_YEAR = @p1
+            AND pu.LAST_AMEND_DATE > @p1
+            AND pu.ACADEMIC_YEAR = @p2
         )
 ORDER BY n.name_id
 FOR json path
