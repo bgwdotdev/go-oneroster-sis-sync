@@ -288,44 +288,79 @@ ORDER BY
     sourcedId 
 
 -- name: select-users-pupil
-SELECT
-    P.NAME_ID AS sourcedId,
-    case when P.IN_USE = 'Y' then 'active' else 'tobedeleted' end AS status,
+SELECT P.NAME_ID AS 'user.sourcedId'
+    , CASE 
+        WHEN P.IN_USE = 'Y'
+            THEN 'active'
+        ELSE 'tobedeleted'
+        END AS 'user.status'
+    ,
     /* P.LAST_AMEND_DATE as dateLastModified, */
-    case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS username,
-    '' AS userIds, -- GUIDRef[0..*]
-    /* change to PASS API allow? */
-    case when P.IN_USE = 'Y' then 'true' else 'false' end AS enabledUser,
-    N.PREFERRED_NAME AS givenName,
-    N.SURNAME AS familyName,
-    '' AS middlename,
-    'student' AS role,
-    P.CODE AS identifier,
-    case when N.EMAIL_ADDRESS is null then 'NULL' else N.EMAIL_ADDRESS end AS email,
-    '' AS sms,
-    '' AS phone,
-    '' AS agentSourcedIds, -- GUIDRef[0..*]
-    school.SCHOOL_ID AS orgSourcedIds, --GUIDRef[1..*]
-    formYear.AGE_RANGE AS grades,
-    '' AS password
-FROM
-    dbo.PUPIL AS P
-        INNER JOIN
-    dbo.NAME AS N
-        ON P.NAME_ID = N.NAME_ID
-        INNER JOIN
-    dbo.FORM AS form
-        ON P.FORM = form.CODE
-        INNER JOIN
-    dbo.FORM_YEAR AS formYear
-        ON form.YEAR_CODE = formYear.CODE
-    inner join dbo.SCHOOL
-        on p.school = school.code
+    CASE 
+        WHEN N.EMAIL_ADDRESS IS NULL
+            THEN 'NULL'
+        ELSE N.EMAIL_ADDRESS
+        END AS 'user.username'
+    , (
+        SELECT '' AS 'type'
+            , '' AS 'identifier'
+        FOR json path
+        ) AS 'user.userIds'
+    , CASE 
+        WHEN P.IN_USE = 'Y'
+            THEN CAST(1 as bit)
+        ELSE CAST(0 as bit)
+        END AS 'user.enabledUser'
+    , N.PREFERRED_NAME AS 'user.givenName' -- change to PASS API 'allow' ?
+    , N.SURNAME AS 'user.familyName'
+    , '' AS 'user.middlename'
+    , 'student' AS 'user.role'
+    , P.CODE AS 'user.identifier'
+    , CASE 
+        WHEN N.EMAIL_ADDRESS IS NULL
+            THEN 'NULL'
+        ELSE N.EMAIL_ADDRESS
+        END AS 'user.email'
+    , '' AS 'user.sms'
+    , '' AS 'user.phone'
+    , (
+        SELECT r.to_name_id AS 'sourcedId'
+            , 'user' AS 'type'
+        FROM dbo.relationship AS r
+        WHERE p.name_id = r.from_name_id
+            AND r.rank <= '2'
+        FOR json path
+        ) AS 'user.agents'
+    , (
+        SELECT s.SCHOOL_ID AS 'sourcedId'
+            , 'org' AS 'type'
+        FROM dbo.school AS s
+        WHERE p.school = s.CODE
+        FOR json PATH
+        ) AS 'user.orgs'
+    , JSON_QUERY(CONCAT (
+            '["'
+            , formYear.AGE_RANGE
+            /* -- TEMPLATE FOR ARRAY VALUES
+            , '","'
+            , formyear.AGE_RANGE_2
+            */
+            , '"]'
+            )) AS 'user.grades'
+    , '' AS 'user.password'
+FROM dbo.PUPIL AS P
+INNER JOIN dbo.NAME AS N
+    ON P.NAME_ID = N.NAME_ID
+INNER JOIN dbo.FORM AS form
+    ON P.FORM = form.CODE
+INNER JOIN dbo.FORM_YEAR AS formYear
+    ON form.YEAR_CODE = formYear.CODE
 WHERE P.LAST_AMEND_DATE > @p1
-AND P.ACADEMIC_YEAR = @p2
-AND form.ACADEMIC_YEAR = @p2
-ORDER BY
-    sourcedId
+    AND P.ACADEMIC_YEAR = @p2
+    AND form.ACADEMIC_YEAR = @p2
+ORDER BY 'user.sourcedId'
+FOR JSON PATH
+    --, ROOT('users')
 
 -- name: select-users-staff
 SELECT 
@@ -398,3 +433,89 @@ WHERE
 AND U.LAST_AMEND_DATE > @p1
 ORDER BY
     sourcedId
+
+-- name: select-users-parents
+SELECT n.name_id AS 'user.sourcedId'
+    , n.EMAIL_ADDRESS AS 'user.username'
+    -- userids
+    , CASE 
+        WHEN n.CONTACT_IN_USE = 'Y'
+            THEN CAST(1 as bit)
+        ELSE CAST(0 as bit)
+        END AS 'user.enabledUser'
+    , n.PREFERRED_NAME AS 'user.givenName'
+    , n.SURNAME AS 'user.familyName'
+    , '' AS 'user.middleName'
+    , CASE 
+        WHEN EXISTS (
+                SELECT 1
+                FROM dbo.name
+                JOIN dbo.relationship
+                    ON n.name_id = relationship.TO_NAME_ID
+                JOIN dbo.RELATIONSHIP_TYPE AS rety
+                    ON relationship.RELATION_ID = rety.ID
+                WHERE rety.TO_RELATION = 'mother'
+                    OR rety.TO_RELATION = 'father'
+                )
+            THEN 'parent'
+        WHEN EXISTS (
+                SELECT 1
+                FROM dbo.name
+                JOIN dbo.relationship
+                    ON n.name_id = relationship.TO_NAME_ID
+                JOIN dbo.RELATIONSHIP_TYPE AS rety
+                    ON relationship.RELATION_ID = rety.ID
+                WHERE rety.TO_RELATION = 'guardian'
+                )
+            THEN 'guardian'
+        ELSE 'relative'
+        END AS 'user.role'
+    , n.NAME_CODE AS 'user.identifier'
+    , n.EMAIL_ADDRESS AS 'user.email'
+    , '' AS 'user.sms'
+    , '' AS 'user.phone'
+    , (
+        SELECT rel.FROM_NAME_ID AS 'sourcedId'
+            , 'user' AS 'type'
+          --  , pupil.ACADEMIC_YEAR 'academic year'
+        FROM dbo.RELATIONSHIP AS rel
+        JOIN dbo.pupil
+            ON rel.FROM_NAME_ID = pupil.NAME_ID
+        WHERE rel.TO_NAME_ID = n.name_id
+            AND pupil.ACADEMIC_YEAR = @p2
+        FOR json path
+        ) AS 'user.agents'
+    , (
+        SELECT s.school_id AS 'sourcedId'
+            , 'org' AS 'type'
+        FROM dbo.relationship AS rel
+        JOIN dbo.pupil AS pu
+            ON rel.FROM_NAME_ID = pu.NAME_ID
+        JOIN dbo.school AS s
+            ON pu.school = s.code
+        WHERE rel.TO_NAME_ID = n.NAME_ID
+        GROUP BY s.SCHOOL_ID
+        FOR json PATH
+        ) AS 'user.orgs'
+    -- grades
+    , '' AS 'user.password'
+FROM dbo.name AS n
+-- validate user is a primary contact and not pupil
+-- no 'role' flag or column for validating parent/guardian status within pass
+WHERE EXISTS (
+        SELECT 1
+        FROM dbo.name na
+        JOIN dbo.RELATIONSHIP re
+            ON na.name_id = re.to_name_id
+        JOIN dbo.RELATIONSHIP_TYPE rety
+            ON re.RELATION_ID = rety.ID
+        JOIN dbo.pupil pu
+            ON pu.NAME_ID = re.FROM_NAME_ID
+        WHERE n.name_id = re.to_name_id
+            AND re.rank <= 2
+            AND rety.TO_RELATION != 'pupil'
+            AND pu.LAST_AMEND_DATE > @p1
+            AND pu.ACADEMIC_YEAR = @p2
+        )
+ORDER BY n.name_id
+FOR json path

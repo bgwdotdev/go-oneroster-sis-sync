@@ -2,6 +2,7 @@ package pass
 
 import (
 	"database/sql"
+	"encoding/json"
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/fffnite/go-oneroster-sis-sync/internal/sync"
 	or "github.com/fffnite/go-oneroster/ormodel"
@@ -50,12 +51,63 @@ func RunBuild(db *sql.DB, dot *dotsql.DotSql, token string) {
 	for _, v := range users {
 		sync.PutData(v, "/users/"+v.SourcedId, token)
 	}
+	usersJson := BuildJsonUsers(db, dot)
+	sync.PutData(usersJson, "/users", token)
+}
+
+func BuildJsonUsers(db *sql.DB, dot *dotsql.DotSql) []or.Userwrap {
+	var users []or.Userwrap
+	queries := []string{
+		"select-users-pupil",
+		"select-users-parents",
+	}
+	for _, q := range queries {
+		log.Infof("starting: %s", q)
+		lm := viper.Get("sis_last_modified")
+		ay := viper.Get("sis_academic_year")
+		rows, err := dot.Query(db, q, lm, ay)
+		if err != nil {
+			log.Error(err)
+		}
+
+		// string concat due to sql(golang?) splitting json docs
+		// over multiple rows at X character interval?
+		var docs string
+		for rows.Next() {
+			var doc string
+			err := rows.Scan(&doc)
+			if err != nil {
+				log.Error(err)
+			}
+			docs = docs + doc
+		}
+		b := []byte(docs)
+
+		// json
+		err = json.Unmarshal(b, &users)
+		if err != nil {
+			log.Error(err)
+		}
+
+		/*
+			// test print
+			//fmt.Println(users)
+			for _, v := range users {
+				out, err := json.Marshal(v)
+				if err != nil {
+					//		log.Error(err)
+				}
+				fmt.Println(string(out))
+			}
+		*/
+
+	}
+	return users
 }
 
 func BuildUsers(db *sql.DB, dot *dotsql.DotSql) []or.Users {
 	var users []or.Users
 	queries := []string{
-		"select-users-pupil",
 		"select-users-staff",
 		"select-users-staff-support",
 	}
