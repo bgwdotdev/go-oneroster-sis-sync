@@ -31,77 +31,81 @@ func RunBuild(db *sql.DB, dot *dotsql.DotSql, token string) {
 	for _, v := range classes {
 		sync.PutData(v, "/classes/"+v.SourcedId, token)
 	}
+
 	as := BuildAcademicSessions(db, dot)
 	for _, v := range as {
 		sync.PutData(v, "/academicSessions/"+v.SourcedId, token)
 	}
+
 	courses := BuildCourses(db, dot)
 	for _, v := range courses {
 		sync.PutData(v, "/courses/"+v.SourcedId, token)
 	}
+
 	enrollments := BuildEnrollments(db, dot)
 	for _, v := range enrollments {
 		sync.PutData(v, "/enrollments/"+v.SourcedId, token)
 	}
+
 	orgs := BuildOrgs(db, dot)
 	for _, v := range orgs {
 		sync.PutData(v, "/orgs/"+v.SourcedId, token)
 	}
+
 	users := BuildUsers(db, dot)
 	for _, v := range users {
 		sync.PutData(v, "/users/"+v.SourcedId, token)
 	}
-	usersJson := BuildJsonUsers(db, dot)
+
+	usersJson := BuildJsonUsers(db, dot, "select-users-pupil")
 	sync.PutData(usersJson, "/users", token)
+
+	usersParentsJson := BuildJsonUsers(db, dot, "select-users-parents")
+	sync.PutData(usersParentsJson, "/users", token)
 }
 
-func BuildJsonUsers(db *sql.DB, dot *dotsql.DotSql) []or.Userwrap {
+func BuildJsonUsers(db *sql.DB, dot *dotsql.DotSql, query string) []or.Userwrap {
 	var users []or.Userwrap
-	queries := []string{
-		"select-users-pupil",
-		"select-users-parents",
+
+	log.Infof("starting: %s", query)
+	lm := viper.Get("sis_last_modified")
+	ay := viper.Get("sis_academic_year")
+
+	rows, err := dot.Query(db, query, lm, ay)
+	if err != nil {
+		log.Error(err)
 	}
-	for _, q := range queries {
-		log.Infof("starting: %s", q)
-		lm := viper.Get("sis_last_modified")
-		ay := viper.Get("sis_academic_year")
-		rows, err := dot.Query(db, q, lm, ay)
+
+	var docs string
+	for rows.Next() {
+		var doc string
+		err := rows.Scan(&doc)
 		if err != nil {
 			log.Error(err)
 		}
+		docs = docs + doc
+	}
+	b := []byte(docs)
 
-		// string concat due to sql(golang?) splitting json docs
-		// over multiple rows at X character interval?
-		var docs string
-		for rows.Next() {
-			var doc string
-			err := rows.Scan(&doc)
+	// json
+	err = json.Unmarshal(b, &users)
+	if err != nil {
+		log.Error(err)
+	}
+
+	// TODO: use log.debug
+	/*
+		// test print
+		//fmt.Println(users)
+		for _, v := range users {
+			out, err := json.Marshal(v)
 			if err != nil {
-				log.Error(err)
+				//		log.Error(err)
 			}
-			docs = docs + doc
+			fmt.Println(string(out))
 		}
-		b := []byte(docs)
+	*/
 
-		// json
-		err = json.Unmarshal(b, &users)
-		if err != nil {
-			log.Error(err)
-		}
-
-		/*
-			// test print
-			//fmt.Println(users)
-			for _, v := range users {
-				out, err := json.Marshal(v)
-				if err != nil {
-					//		log.Error(err)
-				}
-				fmt.Println(string(out))
-			}
-		*/
-
-	}
 	return users
 }
 
