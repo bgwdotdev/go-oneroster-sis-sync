@@ -55,5 +55,5 @@ func PutData(data interface{}, endpoint, token string) {
 	if err != nil {
 		log.Error(err)
 	}
-	log.Info(string(b))
+	log.Debug(string(b))
 }
