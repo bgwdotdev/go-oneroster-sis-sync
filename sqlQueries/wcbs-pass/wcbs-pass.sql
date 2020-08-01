@@ -437,6 +437,11 @@ ORDER BY
 
 -- name: select-users-parents
 SELECT n.name_id AS 'user.sourcedId'
+    , CASE
+        WHEN n.CONTACT_IN_USE = 'Y'
+            THEN 'active'
+        ELSE 'tobedeleted'
+        END AS 'user.status'
     , n.EMAIL_ADDRESS AS 'user.username'
     -- userids
     , CASE 
