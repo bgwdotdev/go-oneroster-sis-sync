@@ -358,6 +358,7 @@ INNER JOIN dbo.FORM_YEAR AS formYear
 WHERE P.LAST_AMEND_DATE > @p1
     AND P.ACADEMIC_YEAR = @p2
     AND form.ACADEMIC_YEAR = @p2
+    AND P.RECORD_TYPE = 1
 ORDER BY 'user.sourcedId'
 FOR JSON PATH
     --, ROOT('users')
