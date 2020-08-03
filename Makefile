@@ -15,3 +15,9 @@ build-windows:
 	GOARCH=amd64
 	go build \
 		-o goors-sync-windows-amd64.exe 
+tar:
+	tar \
+		--gzip \
+		--create \
+		--file goors-sql.tar.gz \
+		sqlQueries 
